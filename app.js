@@ -6,7 +6,7 @@ var dx = 1; // controls speed
 var dy = -1;
 var ballRadius = 10;
 
-//paddly begins here.
+//paddle begins here.
 var paddleHeight = 10; // height  
 var paddleWidth = 75; // width
 var paddleX = (canvas.width-paddleWidth)/2; //starting point on axis
@@ -15,8 +15,39 @@ var paddleX = (canvas.width-paddleWidth)/2; //starting point on axis
 var rightPressed = false;
 var leftPressed = false;
 
+//SetUp of Bricks
+var brickRowCount = 3;
+var brickColumnCount = 5;
+var brickWidth = 75;
+var brickHeight = 20;
+var brickPadding = 10;
+var brickOffsetTop = 30; //Insures that the bricks are not drawn at the edge of the Canvas.
+var brickOffsetLeft = 30;
+
+var bricks = [];//Create Bricks
+for (var c = 0; c < brickColumnCount; c++) {
+  bricks[c] = [];
+  for (var r = 0; r < brickRowCount; r++) {
+    bricks[c][r] = { x: 0, y: 0 , status: 1 };
+  }
+}
+
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+
+function collisionDetection() {//collision function that will loop through the bricks and compare the brick position and the ball's cordinates
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      var b = bricks[c][r];
+      if (b.status == 1) { //if the brick is actie it will check if; the collision will happen if its 0
+        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+          dy = -dy;
+          b.status = 0;
+        }
+      }
+    }
+  }
+}
 
 function keyDownHandler(e) {
   if (e.key == "Right" || e.key == "ArrowRight") {
@@ -38,7 +69,7 @@ function keyUpHandler(e) {
 
 function drawBall() {
   ctx.beginPath();
-  ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+  ctx.arc(x, y, ballRadius, 0, Math.PI*2);
   ctx.fillStyle = "#0095DD";
   ctx.fill();
   ctx.closePath();
@@ -50,12 +81,31 @@ function drawPaddle() {
   ctx.fill();
   ctx.closePath();
 }
+function drawBricks() { //It is looping through cols and rows to position each brick
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      if(bricks[c][r].status == 1){
+      var brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+      var brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+      bricks[c][r].x = brickX;
+      bricks[c][r].y = brickY;
+      ctx.beginPath();
+      ctx.rect(brickX, brickY, brickWidth, brickHeight);//painting each brick
+      ctx.fillStyle = "#0095DD";
+      ctx.fill();
+      ctx.closePath();
+      }
+    }
+  }
+}
 
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); //clearReact() cleans up the traces of the ball
   drawBall();
   drawPaddle();
+  drawBricks();
+  collisionDetection();
 
   //Determines when the ball should return
   // we use "-ballRadius" because we want to stop the ball the moment it touches the canvas wall
