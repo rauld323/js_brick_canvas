@@ -24,6 +24,12 @@ var brickPadding = 10;
 var brickOffsetTop = 30; //Insures that the bricks are not drawn at the edge of the Canvas.
 var brickOffsetLeft = 30;
 
+//Score Keeper
+var score = 0;
+
+//Player Lives 
+var lives = 3;
+
 var bricks = [];//Create Bricks
 for (var c = 0; c < brickColumnCount; c++) {
   bricks[c] = [];
@@ -34,6 +40,7 @@ for (var c = 0; c < brickColumnCount; c++) {
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
 
 function collisionDetection() {//collision function that will loop through the bricks and compare the brick position and the ball's cordinates
   for (var c = 0; c < brickColumnCount; c++) {
@@ -43,10 +50,28 @@ function collisionDetection() {//collision function that will loop through the b
         if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
           dy = -dy;
           b.status = 0;
+          score++;
+          if(score === brickRowCount*brickColumnCount){
+            alert("You've Won! Congratulations!");
+            document.location.reload();
+            clearInterval(interval);
+          }
         }
       }
     }
   }
+}
+
+function drawScore(){
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Score: " + score*2, 8, 20)
+}
+
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
 }
 
 function keyDownHandler(e) {
@@ -64,6 +89,15 @@ function keyUpHandler(e) {
   }
   else if (e.key == "Left" || e.key == "ArrowLeft") {
     leftPressed = false;
+  }
+}
+
+
+
+function mouseMoveHandler(e) {
+  var relativeX = e.clientX - canvas.offsetLeft;
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth/2;
   }
 }
 
@@ -106,6 +140,8 @@ function draw() {
   drawPaddle();
   drawBricks();
   collisionDetection();
+  drawScore();
+  drawLives();
 
   //Determines when the ball should return
   // we use "-ballRadius" because we want to stop the ball the moment it touches the canvas wall
@@ -119,9 +155,19 @@ function draw() {
       dy = -dy;
     }
     else {
-      alert("GAME OVER");
-      document.location.reload();
-      clearInterval(interval);
+      lives--;
+      if (!lives) {
+        alert("GAME OVER");
+        document.location.reload();
+        clearInterval(interval); // Needed for Chrome to end game
+      }
+      else {
+        x = canvas.width / 2;
+        y = canvas.height - 30;
+        dx = 2;
+        dy = -2;
+        paddleX = (canvas.width - paddleWidth) / 2;
+      }
     }
   }
 
